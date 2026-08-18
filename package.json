@@ -22,7 +22,7 @@
     "test": "npm run build && node --test tests/*.test.mjs"
   },
   "peerDependencies": {
-    "three": "^0.185.1"
+    "three": "*"
   },
   "devDependencies": {
     "@types/three": "^0.185.4",

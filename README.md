@@ -5,7 +5,7 @@ DOM要素に揃えた複数のThree.js Sceneを、1枚のviewport固定Canvasへ
 ## 前提条件
 
 - ESMを扱えるビルド環境
-- `three` 0.185系（peer dependency）
+- 利用側のThree.jsを使用します。ライブラリ開発時は0.185系で検証していますが、将来版との互換性を保証するものではありません
 - `window.matchMedia`、`HTMLElement.getBoundingClientRect`、WebGLを利用できるブラウザ環境
 - Canvasがviewport全体を覆い、Canvas左上とviewport左上が一致するレイアウト
 
