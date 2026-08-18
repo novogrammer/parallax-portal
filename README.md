@@ -29,6 +29,10 @@ GitHub shorthandのGit dependencyとしてインストールできます。再�
 npm install ../parallax-portal
 ```
 
+## ドキュメント
+
+[設計概要](docs/overview.md) / [垂直投影モデル](docs/vertical-projection.md) / [検証条件](docs/validation.md)
+
 ## 最小使用例
 
 ```ts
