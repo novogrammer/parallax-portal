@@ -1,0 +1,34 @@
+{
+  "name": "parallax-portal",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Render DOM-aligned Three.js scenes through a shared WebGL renderer.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "npm run build && node --test tests/*.test.mjs"
+  },
+  "peerDependencies": {
+    "three": "^0.185.1"
+  },
+  "devDependencies": {
+    "@types/three": "^0.185.4",
+    "three": "^0.185.1",
+    "typescript": "~6.0.2"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
