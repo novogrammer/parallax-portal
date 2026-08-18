@@ -9,13 +9,27 @@ DOM要素に揃えた複数のThree.js Sceneを、1枚のviewport固定Canvasへ
 - `window.matchMedia`、`HTMLElement.getBoundingClientRect`、WebGLを利用できるブラウザ環境
 - Canvasがviewport全体を覆い、Canvas左上とviewport左上が一致するレイアウト
 
-## 最小使用例
+## インストール
 
-利用側からローカルパスを指定してインストールします。
+GitHubからHTTPSのGit dependencyとしてインストールできます。再現可能な依存関係にするため、branch名ではなく完全なcommit SHAへの固定を推奨します。
+
+```json
+{
+  "dependencies": {
+    "parallax-portal": "git+https://github.com/novogrammer/parallax-portal.git#<commit-sha>"
+  }
+}
+```
+
+インストール時に `prepare` scriptがTypeScriptをbuildし、Git管理外の `dist/` をpackageへ含めます。SSH URLは使用しません。
+
+ローカルではパスを指定してインストールすることもできます。
 
 ```sh
 npm install ../parallax-portal
 ```
+
+## 最小使用例
 
 ```ts
 import * as THREE from 'three'
