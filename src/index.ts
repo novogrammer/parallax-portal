@@ -7,11 +7,13 @@ export {
   calculateReferenceCameraDistance,
   calculateRenderCameraFovY,
   calculateWebGlScissor,
+  calculateWebGpuScissor,
   validateProjectionProfile,
   validateReferenceProjectionHeight,
   validateSceneConfiguration,
 } from './geometry.js'
 export { selectResponsiveProjection } from './responsive.js'
+export type { PortalRenderer } from './PortalRenderPass.js'
 export type {
   PortalDefinition,
   PortalRuntimeOptions,
@@ -22,7 +24,9 @@ export type {
   ProjectionProfile,
   Rect,
   ResponsiveProjectionRule,
+  ScissorRect,
   SceneConfiguration,
   ViewportSize,
   WebGlScissorRect,
+  WebGpuScissorRect,
 } from './types.js'

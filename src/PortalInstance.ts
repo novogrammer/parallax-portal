@@ -2,13 +2,11 @@ import * as THREE from 'three'
 import {
   calculatePortalGeometry,
   calculatePortalIntersection,
-  calculateWebGlScissor,
 } from './geometry.js'
 import type {
   ProjectionProfile,
   Rect,
   ViewportSize,
-  WebGlScissorRect,
 } from './types.js'
 import type { PortalDefinition } from './PortalRuntime.js'
 
@@ -16,7 +14,7 @@ export interface PortalRenderData {
   scene: THREE.Scene
   camera: THREE.PerspectiveCamera
   clearColor: THREE.ColorRepresentation
-  scissor: WebGlScissorRect
+  intersection: Rect
 }
 
 interface CameraState {
@@ -138,7 +136,7 @@ export class PortalInstance {
       scene: this.definition.scene,
       camera: this.camera,
       clearColor: this.definition.clearColor,
-      scissor: calculateWebGlScissor(intersection, viewport.height),
+      intersection,
     }
   }
 

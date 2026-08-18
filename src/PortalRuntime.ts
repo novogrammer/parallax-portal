@@ -12,6 +12,7 @@ import type {
 } from './types.js'
 import { PortalInstance } from './PortalInstance.js'
 import { PortalRenderPass } from './PortalRenderPass.js'
+import type { PortalRenderer } from './PortalRenderPass.js'
 import { selectResponsiveProjection } from './responsive.js'
 
 export interface PortalDefinition extends SceneConfiguration {
@@ -23,7 +24,7 @@ export interface PortalDefinition extends SceneConfiguration {
 }
 
 export interface PortalRuntimeOptions {
-  renderer: THREE.WebGLRenderer
+  renderer: PortalRenderer
   projection: ProjectionConfiguration
   referenceProjectionHeightMeters: number
   portals: readonly PortalDefinition[]

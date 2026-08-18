@@ -2,7 +2,7 @@
   "name": "parallax-portal",
   "version": "0.0.0",
   "private": true,
-  "description": "Render DOM-aligned Three.js scenes through a shared WebGL renderer.",
+  "description": "Render DOM-aligned Three.js scenes through a shared WebGL or WebGPU renderer.",
   "type": "module",
   "exports": {
     ".": {

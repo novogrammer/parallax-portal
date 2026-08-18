@@ -1,6 +1,17 @@
 import * as THREE from 'three'
+import type { WebGPURenderer } from 'three/webgpu'
+import {
+  calculateWebGlScissor,
+  calculateWebGpuScissor,
+} from './geometry.js'
 import type { ViewportSize } from './types.js'
 import type { PortalRenderData } from './PortalInstance.js'
+
+export type PortalRenderer = THREE.WebGLRenderer | WebGPURenderer
+
+function isWebGpuRenderer(renderer: PortalRenderer): renderer is WebGPURenderer {
+  return 'isWebGPURenderer' in renderer && renderer.isWebGPURenderer === true
+}
 
 interface PortalRenderable {
   getRenderData: (viewport: ViewportSize) => PortalRenderData | null
@@ -13,16 +24,16 @@ interface RendererState {
   clearColor: THREE.Color
   clearAlpha: number
   autoClear: boolean
-  renderTarget: THREE.WebGLRenderTarget | null
+  renderTarget: THREE.RenderTarget | null
   activeCubeFace: number
   activeMipmapLevel: number
 }
 
 export class PortalRenderPass {
-  private readonly renderer: THREE.WebGLRenderer
+  private readonly renderer: PortalRenderer
   private readonly portals: readonly PortalRenderable[]
 
-  constructor(renderer: THREE.WebGLRenderer, portals: readonly PortalRenderable[]) {
+  constructor(renderer: PortalRenderer, portals: readonly PortalRenderable[]) {
     this.renderer = renderer
     this.portals = portals
   }
@@ -46,7 +57,9 @@ export class PortalRenderPass {
           continue
         }
 
-        const { scissor } = renderData
+        const scissor = isWebGpuRenderer(this.renderer)
+          ? calculateWebGpuScissor(renderData.intersection)
+          : calculateWebGlScissor(renderData.intersection, viewport.height)
         this.renderer.setViewport(0, 0, viewport.width, viewport.height)
         this.renderer.setScissor(scissor.x, scissor.y, scissor.width, scissor.height)
         this.renderer.setClearColor(renderData.clearColor, 1)
@@ -73,7 +86,15 @@ export class PortalRenderPass {
   }
 
   private restoreRendererState(state: RendererState): void {
-    this.renderer.setRenderTarget(state.renderTarget, state.activeCubeFace, state.activeMipmapLevel)
+    if (isWebGpuRenderer(this.renderer)) {
+      this.renderer.setRenderTarget(state.renderTarget, state.activeCubeFace, state.activeMipmapLevel)
+    } else {
+      this.renderer.setRenderTarget(
+        state.renderTarget as THREE.WebGLRenderTarget | null,
+        state.activeCubeFace,
+        state.activeMipmapLevel,
+      )
+    }
     this.renderer.setViewport(state.viewport)
     this.renderer.setScissor(state.scissor)
     this.renderer.setScissorTest(state.scissorTest)

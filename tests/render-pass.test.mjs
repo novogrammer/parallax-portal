@@ -16,6 +16,10 @@ class FakeRenderer {
   calls = []
   throwOnRender = false
 
+  constructor(isWebGpuRenderer = false) {
+    if (isWebGpuRenderer) this.isWebGPURenderer = true
+  }
+
   getViewport(target) { return target.copy(this.viewport) }
   getScissor(target) { return target.copy(this.scissor) }
   getScissorTest() { return this.scissorTest }
@@ -67,7 +71,7 @@ function createPortal() {
       scene: { name: 'portal-scene' },
       camera: { name: 'portal-camera' },
       clearColor: 0xabcdef,
-      scissor: { x: 10, y: 20, width: 300, height: 400 },
+      intersection: { x: 10, y: 20, width: 300, height: 400 },
     }),
   }
 }
@@ -86,27 +90,33 @@ function captureState(renderer) {
   }
 }
 
-test('render pass draws portals to the canvas and restores borrowed renderer state', () => {
-  const renderer = new FakeRenderer()
-  const initialState = captureState(renderer)
-  const renderPass = new PortalRenderPass(renderer, [createPortal()])
+for (const rendererCase of [
+  { label: 'WebGL', isWebGpuRenderer: false, expectedScissor: [10, 380, 300, 400] },
+  { label: 'WebGPU', isWebGpuRenderer: true, expectedScissor: [10, 20, 300, 400] },
+]) {
+  test(`${rendererCase.label} render pass draws portals and restores borrowed renderer state`, () => {
+    const renderer = new FakeRenderer(rendererCase.isWebGpuRenderer)
+    const initialState = captureState(renderer)
+    const renderPass = new PortalRenderPass(renderer, [createPortal()])
 
-  renderPass.render({ width: 1200, height: 800 })
+    renderPass.render({ width: 1200, height: 800 })
 
-  assert.deepEqual(captureState(renderer), initialState)
-  assert.equal(renderer.calls.filter(([name]) => name === 'clear').length, 1)
-  assert.equal(renderer.calls.filter(([name]) => name === 'render').length, 1)
-  assert.deepEqual(renderer.calls.find(([name, target]) => name === 'renderTarget' && target === null), [
-    'renderTarget', null, 0, 0,
-  ])
-})
+    assert.deepEqual(captureState(renderer), initialState)
+    assert.equal(renderer.calls.filter(([name]) => name === 'clear').length, 1)
+    assert.equal(renderer.calls.filter(([name]) => name === 'render').length, 1)
+    assert.deepEqual(renderer.calls.find(([name]) => name === 'scissor').slice(1), rendererCase.expectedScissor)
+    assert.deepEqual(renderer.calls.find(([name, target]) => name === 'renderTarget' && target === null), [
+      'renderTarget', null, 0, 0,
+    ])
+  })
 
-test('render pass restores borrowed renderer state when portal rendering throws', () => {
-  const renderer = new FakeRenderer()
-  const initialState = captureState(renderer)
-  const renderPass = new PortalRenderPass(renderer, [createPortal()])
-  renderer.throwOnRender = true
+  test(`${rendererCase.label} render pass restores borrowed state when rendering throws`, () => {
+    const renderer = new FakeRenderer(rendererCase.isWebGpuRenderer)
+    const initialState = captureState(renderer)
+    const renderPass = new PortalRenderPass(renderer, [createPortal()])
+    renderer.throwOnRender = true
 
-  assert.throws(() => renderPass.render({ width: 1200, height: 800 }), /render failed/)
-  assert.deepEqual(captureState(renderer), initialState)
-})
+    assert.throws(() => renderPass.render({ width: 1200, height: 800 }), /render failed/)
+    assert.deepEqual(captureState(renderer), initialState)
+  })
+}
