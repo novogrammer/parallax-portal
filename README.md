@@ -11,17 +11,17 @@ DOM要素に揃えた複数のThree.js Sceneを、1枚のviewport固定Canvasへ
 
 ## インストール
 
-GitHubからHTTPSのGit dependencyとしてインストールできます。再現可能な依存関係にするため、branch名ではなく完全なcommit SHAへの固定を推奨します。
+GitHub shorthandのGit dependencyとしてインストールできます。再現可能な依存関係にするため、branch名ではなく完全なcommit SHAへの固定を推奨します。
 
 ```json
 {
   "dependencies": {
-    "parallax-portal": "git+https://github.com/novogrammer/parallax-portal.git#<commit-sha>"
+    "parallax-portal": "github:novogrammer/parallax-portal#<commit-sha>"
   }
 }
 ```
 
-インストール時に `prepare` scriptがTypeScriptをbuildし、Git管理外の `dist/` をpackageへ含めます。SSH URLは使用しません。
+インストール時に `prepare` scriptがTypeScriptをbuildし、Git管理外の `dist/` をpackageへ含めます。GitHub shorthandからnpmが選択するtransportは環境やnpmの挙動によりHTTPSまたはSSHとなり、lockfileにも選択されたURLが記録されます。このパッケージはいずれのtransportも許容します。
 
 ローカルではパスを指定してインストールすることもできます。
 
