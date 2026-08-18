@@ -3,6 +3,7 @@ import type {
   ProjectionProfile,
   Rect,
   SceneConfiguration,
+  WebGpuScissorRect,
   ViewportSize,
   WebGlScissorRect,
 } from './types.js'
@@ -129,6 +130,20 @@ export function calculateWebGlScissor(intersection: Rect, viewportHeight: number
     y: bottom,
     width: right - left,
     height: top - bottom,
+  }
+}
+
+export function calculateWebGpuScissor(intersection: Rect): WebGpuScissorRect {
+  const left = Math.floor(intersection.x)
+  const top = Math.floor(intersection.y)
+  const right = Math.ceil(intersection.x + intersection.width)
+  const bottom = Math.ceil(intersection.y + intersection.height)
+
+  return {
+    x: left,
+    y: top,
+    width: right - left,
+    height: bottom - top,
   }
 }
 

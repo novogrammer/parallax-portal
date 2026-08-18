@@ -1,12 +1,12 @@
 # parallax-portal
 
-DOM要素に揃えた複数のThree.js Sceneを、1枚のviewport固定Canvasへscissor描画するローカルnpmパッケージです。現在は未公開で、`private: true` に設定されています。
+DOM要素に揃えた複数のThree.js Sceneを、1枚のviewport固定Canvasへscissor描画するローカルnpmパッケージです。`WebGLRenderer` と `WebGPURenderer` に対応します。現在は未公開で、`private: true` に設定されています。
 
 ## 前提条件
 
 - ESMを扱えるビルド環境
 - 利用側のThree.jsを使用します。ライブラリ開発時は0.185系で検証していますが、将来版との互換性を保証するものではありません
-- `window.matchMedia`、`HTMLElement.getBoundingClientRect`、WebGLを利用できるブラウザ環境
+- `window.matchMedia`、`HTMLElement.getBoundingClientRect`、WebGL 2またはWebGPUを利用できるブラウザ環境
 - Canvasがviewport全体を覆い、Canvas左上とviewport左上が一致するレイアウト
 
 ## インストール
@@ -36,10 +36,10 @@ npm install ../parallax-portal
 ## 最小使用例
 
 ```ts
-import * as THREE from 'three'
+import * as THREE from 'three/webgpu'
 import { PortalRuntime } from 'parallax-portal'
 
-const renderer = new THREE.WebGLRenderer({ alpha: true })
+const renderer = new THREE.WebGPURenderer({ alpha: true })
 const scene = new THREE.Scene()
 const element = document.querySelector<HTMLElement>('[data-portal]')!
 
@@ -61,20 +61,22 @@ const runtime = new PortalRuntime({
   }],
 })
 
-function frame() {
+function frame(): void {
   runtime.render({ width: window.innerWidth, height: window.innerHeight })
-  requestAnimationFrame(frame)
 }
 
-frame()
+await renderer.setAnimationLoop(frame)
 
 // 終了時
+await renderer.setAnimationLoop(null)
 runtime.dispose()
 ```
 
+`WebGPURenderer.setAnimationLoop()` は、必要な非同期初期化を完了してから描画ループを開始します。手動の `requestAnimationFrame()` を使うホストは、最初の描画前に自身で `await renderer.init()` を実行します。`WebGLRenderer` も同じ `PortalRuntime` へ渡せます。
+
 ## 所有権と責務
 
-利用側が `WebGLRenderer`、SceneとそのGPUリソース、Canvasの生成・サイズ変更、RAF、フレーム全体のclear、破棄を所有します。`PortalRuntime` はRendererを借用し、Portal領域だけを描画します。描画時に変更するviewport、scissor、scissor test、clear color/alpha、`autoClear`、render targetは、成功時・例外時ともに復元します。
+利用側がRenderer、SceneとそのGPUリソース、Canvasの生成・サイズ変更、描画ループ、Renderer初期化、フレーム全体のclear、破棄を所有します。`PortalRuntime` はRendererを借用し、Portal領域だけを描画します。描画時に変更するviewport、scissor、scissor test、clear color/alpha、`autoClear`、render targetは、成功時・例外時ともに復元します。
 
 `PortalRuntime.dispose()` が破棄するのは自身のMedia Query listenerと内部参照だけです。Renderer、Scene、Geometry、Material、Textureは破棄しません。
 

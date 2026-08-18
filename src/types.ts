@@ -27,12 +27,15 @@ export interface ProjectionConfiguration extends ProjectionProfile {
   rules?: readonly ResponsiveProjectionRule[]
 }
 
-export interface WebGlScissorRect {
+export interface ScissorRect {
   x: number
   y: number
   width: number
   height: number
 }
+
+export type WebGlScissorRect = ScissorRect
+export type WebGpuScissorRect = ScissorRect
 
 export interface PortalGeometryResult {
   intersection: Rect

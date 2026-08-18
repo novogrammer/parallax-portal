@@ -4,13 +4,14 @@
 
 DOM要素を窓として複数のThree.js Sceneを表示し、Scene内の奥行きによる視差を保ったまま、1枚のviewport固定Canvasへscissor描画するためのRuntimeと幾何計算を提供する。
 
-利用側が所有する既存の `WebGLRenderer` と描画ループへ追加できることを前提とし、RendererやSceneの生成・破棄は行わない。
+利用側が所有する既存の `WebGLRenderer` または `WebGPURenderer` と描画ループへ追加できることを前提とし、RendererやSceneの生成・初期化・破棄は行わない。
 
 ## 全体構造
 
 ```text
 Host application
-├── WebGLRenderer / Canvas / RAF
+├── WebGLRenderer または WebGPURenderer
+├── Canvas / animation loop
 ├── viewport size
 ├── Projection Configuration
 ├── referenceProjectionHeightMeters
@@ -28,7 +29,7 @@ Host application
     └── Portal Render Pass
           |
           v
-    borrowed WebGLRenderer
+    borrowed Renderer
 ```
 
 各Portalのfull DOM矩形はCamera位置と投影の計算に使い、Portalとviewportの交差矩形はscissorにだけ使う。Portalが部分表示されてもCameraと構図は切り替えず、描画範囲だけを狭める。
@@ -42,6 +43,7 @@ Host application
 - `PortalRuntime`
 - `PortalRuntimeOptions`
 - `PortalDefinition`
+- `PortalRenderer`
 
 ### Geometryとresponsive選択
 
@@ -51,6 +53,7 @@ Host application
 - `calculateCameraY`
 - `calculateRenderCameraFovY`
 - `calculateWebGlScissor`
+- `calculateWebGpuScissor`
 - `calculatePortalGeometry`
 - `validateProjectionProfile`
 - `validateReferenceProjectionHeight`
@@ -66,6 +69,8 @@ Host application
 - `ResponsiveProjectionRule`
 - `ProjectionConfiguration`
 - `WebGlScissorRect`
+- `WebGpuScissorRect`
+- `ScissorRect`
 - `PortalGeometryResult`
 
 ## 設定モデル
@@ -132,13 +137,16 @@ Portal寸法はCSSが所有する。Runtimeは `getBoundingClientRect()` の実�
 
 利用側は次を所有する。
 
-- `WebGLRenderer` とCanvas
+- `WebGLRenderer` または `WebGPURenderer` とCanvas
 - Canvasと描画バッファのサイズ
-- requestAnimationFrameとフレーム全体の描画順
+- `setAnimationLoop()` またはrequestAnimationFrameとフレーム全体の描画順
+- WebGPURendererの非同期初期化
 - Scene、Geometry、Material、Texture
 - フレーム全体のclearとRendererの破棄
 
 `PortalRuntime` はPortal用の `PerspectiveCamera`、Media Query listener、内部参照だけを管理する。`dispose()` はlistenerと内部参照を解放するが、借りたRenderer、Scene、GPUリソースを破棄しない。
+
+`WebGPURenderer` で `setAnimationLoop()` を使う場合は、Three.jsが必要な非同期初期化を行う。手動のrequestAnimationFrameを使う場合は、利用側が最初の描画前に `await renderer.init()` を完了させる。`PortalRuntime` は初期化状態を変更しない。
 
 ## 描画契約
 
@@ -149,11 +157,11 @@ Canvasがviewport全体を覆い、Canvas左上とviewport左上が一致する�
 1. `getBoundingClientRect()` からfull Portal矩形を取得する。
 2. viewportとの交差矩形を求め、交差しなければ描画しない。
 3. full Portal矩形と設定からCamera位置とFOVを導出する。
-4. WebGL viewportをCanvas全体へ設定する。
-5. 交差矩形をWebGL左下原点のscissorへ変換する。
+4. viewportをCanvas全体へ設定する。
+5. WebGLRendererでは交差矩形を左下原点へ変換し、WebGPURendererではDOMと同じ左上原点を維持してscissorへ設定する。
 6. scissor内のcolor、depth、stencil bufferをclearしてSceneを描画する。
 
-描画前にRendererのviewport、scissor、scissor test、clear colorとalpha、`autoClear`、render target、cube face、mipmap levelを保存し、成功時と例外時の両方で復元する。Portal領域のフレームバッファは変更されるため、利用側が既存Sceneとの描画順を決める。
+Renderer種別は `isWebGPURenderer` で内部判定する。描画前にviewport、scissor、scissor test、clear colorとalpha、`autoClear`、render target、cube face、mipmap levelを保存し、成功時と例外時の両方で復元する。Portal領域のフレームバッファは変更されるため、利用側が既存Sceneとの描画順を決める。
 
 ## エラー処理
 

@@ -13,8 +13,9 @@
 | Portalが部分表示 | full Portal矩形によるCamera計算を維持する |
 | Portalがviewport外 | 交差なしとして描画対象から外す |
 | Portalがviewportより大きい | viewportとの交差矩形を返す |
-| scissorに端数がある | 左・下をfloor、右・上をceilして外側へ丸める |
+| scissorに端数がある | Rendererの原点にかかわらず外側へ丸める |
 | WebGL scissorへ変換 | viewport左上原点からWebGL左下原点へ変換する |
+| WebGPU scissorへ変換 | viewport左上原点を維持する |
 
 ## Responsive Projection
 
@@ -31,7 +32,8 @@
 
 | ケース | 期待結果 |
 | --- | --- |
-| Portalごとの描画 | viewportはCanvas全体、scissorは交差矩形になる |
+| WebGLでPortalを描画 | viewportはCanvas全体、scissorは左下原点の交差矩形になる |
+| WebGPUでPortalを描画 | viewportはCanvas全体、scissorは左上原点の交差矩形になる |
 | Portal描画前 | 対象scissor内のcolor、depth、stencil bufferをclearする |
 | 同じSceneを複数Portalへ渡す | Portalごとに独立したCamera状態を持つ |
 | Camera Yが移動 | Camera X、Z、回転の規則を維持する |
@@ -43,13 +45,14 @@
 | 初回から実行時入力が不正 | 対象Portalを描画しない |
 | 不正状態が継続 | 同じエラーを毎フレーム出力しない |
 | dispose後にrender | 例外を投げる |
+| WebGPURendererを借りる | Runtimeは初期化やanimation loopを所有しない |
 
 ## Renderer所有権
 
 | ケース | 期待結果 |
 | --- | --- |
-| Portal描画が成功 | 借りたRenderer状態を復元する |
-| Portal描画が例外 | Renderer状態を復元してから例外を伝播する |
+| WebGL / WebGPUでPortal描画が成功 | 借りたRenderer状態を復元する |
+| WebGL / WebGPUでPortal描画が例外 | Renderer状態を復元してから例外を伝播する |
 | Portal外の領域 | フレームバッファを変更しない |
 | Runtimeを破棄 | Renderer、Scene、GPUリソースを破棄しない |
 
@@ -62,4 +65,4 @@ npm test
 npm run build
 ```
 
-単体テストはGeometry、responsive選択、Camera clipping plane、Portal Render Passの正常系と例外系を対象とする。本物のブラウザとWebGLコンテキストを必要とする見た目・スクロール・Canvas配置の検証は、利用側アプリケーションで行う。
+単体テストはGeometry、両Rendererのscissor変換、responsive選択、Camera clipping plane、Portal Render Passの正常系と例外系を対象とする。本物のブラウザとWebGLまたはWebGPUコンテキストを必要とする見た目・スクロール・Canvas配置の検証は、利用側アプリケーションで行う。

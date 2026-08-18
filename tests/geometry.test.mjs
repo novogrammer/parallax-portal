@@ -8,6 +8,7 @@ import {
   calculateReferenceCameraDistance,
   calculateRenderCameraFovY,
   calculateWebGlScissor,
+  calculateWebGpuScissor,
   validateProjectionProfile,
   validateReferenceProjectionHeight,
   validateSceneConfiguration,
@@ -70,6 +71,13 @@ test('WebGL scissor rounds outward and converts to a bottom-left origin', () => 
   assert.deepEqual(
     calculateWebGlScissor({ x: 10.4, y: 20.2, width: 100.2, height: 200.1 }, 800),
     { x: 10, y: 579, width: 101, height: 201 },
+  )
+})
+
+test('WebGPU scissor rounds outward and keeps a top-left origin', () => {
+  assert.deepEqual(
+    calculateWebGpuScissor({ x: 10.4, y: 20.2, width: 100.2, height: 200.1 }),
+    { x: 10, y: 20, width: 101, height: 201 },
   )
 })
 
